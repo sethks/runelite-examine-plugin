@@ -40,7 +40,6 @@ public class MonsterExaminePlugin extends Plugin
 	private ClientToolbar clientToolbar;
 	private MonsterExaminePanel panel;
 	private NavigationButton navButton;
-	private boolean findStatsMode = false;
 
 	@Provides
 	MonsterExamineConfig provideConfig(ConfigManager configManager) {
@@ -107,22 +106,52 @@ public class MonsterExaminePlugin extends Plugin
 		}
 	}
 
-	private void insertMenuEntry(MenuEntry newEntry, MenuEntry[] entries)
-	{
-		MenuEntry[] newMenu = new MenuEntry[entries.length + 1];
-		newMenu[0] = newEntry;
-		System.arraycopy(entries, 0, newMenu, 1, entries.length);
-		client.setMenuEntries(newMenu);
-	}
-
 	public void examineMonster(String monsterName)
 	{
 		//retrieve stats
 		String monsterStats = getMonsterStats(monsterName);
 		System.out.println(monsterStats);
 
-		//update panel
-		SwingUtilities.invokeLater(() -> panel.updateMonsterInfo(monsterName, monsterStats));
+		//parse individual stats from monsterStats string
+		int hitpoints = extractStat(monsterStats, "Hitpoints: ");
+		int attack = extractStat(monsterStats, "Attack: ");
+		int strength = extractStat(monsterStats, "Strength: ");
+		int defence = extractStat(monsterStats, "Defence: ");
+		int magic = extractStat(monsterStats, "Magic: ");
+		int ranged = extractStat(monsterStats, "Ranged: ");
+		int attackBonus = extractStat(monsterStats, "Attack Bonus: ");
+		int strengthBonus = extractStat(monsterStats, "Strength Bonus: ");
+		int magicAccuracy = extractStat(monsterStats, "Magic Accuracy: ");
+		int magicStrength = extractStat(monsterStats, "Magic Strength: ");
+		int rangedAccuracy = extractStat(monsterStats, "Ranged Accuracy: ");
+		int rangedStrength = extractStat(monsterStats, "Ranged Strength: ");
+		int stabDefence = extractStat(monsterStats, "Stab Defence: ");
+		int slashDefence = extractStat(monsterStats, "Slash Defence: ");
+		int crushDefence = extractStat(monsterStats, "Crush Defence: ");
+		int magicDefence = extractStat(monsterStats, "Magic Defence: ");
+		int rangedDefence = extractStat(monsterStats, "Ranged Defence: ");
+
+		//update panel with individual stats
+		SwingUtilities.invokeLater(() -> panel.updateMonsterInfo(monsterName, hitpoints, attack, strength, defence, magic, ranged,
+				attackBonus, strengthBonus, magicAccuracy, magicStrength, rangedAccuracy, rangedStrength,
+				stabDefence, slashDefence, crushDefence, magicDefence, rangedDefence));
+	}
+
+	private int extractStat(String monsterStats, String statName)
+	{
+		int index = monsterStats.indexOf(statName);
+		if (index != -1)
+		{
+			int startIndex = index + statName.length();
+			int endIndex = monsterStats.indexOf("\n", startIndex);
+			if (endIndex == -1)
+			{
+				endIndex = monsterStats.length();
+			}
+			String statValue = monsterStats.substring(startIndex, endIndex).trim();
+			return Integer.parseInt(statValue);
+		}
+		return 0;
 	}
 
 	private String getMonsterStats(String monsterName)
